@@ -1,0 +1,38 @@
+﻿<link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../iron-ajax/iron-ajax.html" />
+<dom-module id="krypton-list">
+    <template>
+        <iron-ajax id="ajax"
+                   handle-as="json"
+                   on-response="_onResponse"
+                   content-type="application/json">
+        </iron-ajax>
+    </template>
+    <script>
+        Polymer({
+            is: "krypton-list",
+            properties: {
+                items: { type: Array, notify: true, },
+                modelName: { type: String },
+                baseUrl: { type: String, value: "/api/" },
+                getUrl: { String }
+            },
+            observers: [
+               "_modelNameChanged(modelName, baseUrl)",
+            ],
+            _modelNameChanged: function (modelName, baseUrl) {
+                if (!this.getUrl) this.getUrl = baseUrl + modelName + "/";
+            },
+            getItems: function () {
+                this.$.ajax.method = "GET";
+                this.$.ajax.url = this.getUrl;
+                this.$.ajax.body = null;
+                this.$.ajax.generateRequest();
+            },
+            _onResponse: function (e) {
+                this.set("items", e.detail.response)
+                this.fire("krypton-list", this.items);
+            }
+            });
+    </script>
+</dom-module>

@@ -19,7 +19,8 @@
   "dependencies": {
     "paper-button": "polymerelements/paper-button#^1.0.0",
     "paper-input": "polymerelements/paper-input#^1.0.0",
-	"iron-ajax": "polymerelements/iron-ajax#^1.0.0",
-    "polymer": "Polymer/polymer#^1.1.0"
+	  "iron-ajax": "polymerelements/iron-ajax#^1.0.0",
+    "polymer": "Polymer/polymer#^1.1.0",
+    "iron-component-page": "Polymer/polymerelements/iron-component-page#^1.1.0"
   }
 }

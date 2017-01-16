@@ -1,6 +1,14 @@
 ﻿<link rel="import" href="../polymer/polymer.html" />
 <link rel="import" href="../iron-ajax/iron-ajax.html" />
 <dom-module id="krypton-list">
+    <!--
+    `<krypton-entity>` provides simple create, read, update and delete actions to a single entity winthin the .Net Web API framework.
+         Using the attibutes and methods built into krypton-entity, it will return your C# entity type.
+    Example:
+        <krypton-entity id="krypton" key="{{id}}" model-name="Cars" item="{{entityType}}"></krypton-entity>
+    @group krypton Elements
+    @element krypton-entity
+    -->
     <template>
         <iron-ajax id="ajax"
                    handle-as="json"
@@ -12,8 +20,11 @@
         Polymer({
             is: "krypton-list",
             properties: {
-                items: { type: Array, notify: true, },
+                /*Output property, the list of entitys from your c#*/
+                items: { type: Array, notify: true },
+                /*<span style="color:red">`/api/modelName`</span>, Example: api/Cars*/
                 modelName: { type: String },
+                /*Define your url with this attribute. Otherwise it defaults to url in the current brower with /api*/
                 baseUrl: { type: String, value: "/api/" },
                 getUrl: { String }
             },
@@ -23,12 +34,14 @@
             _modelNameChanged: function (modelName, baseUrl) {
                 if (!this.getUrl) this.getUrl = baseUrl + modelName + "/";
             },
+            /*GET request for a list of entities*/
             getItems: function () {
                 this.$.ajax.method = "GET";
                 this.$.ajax.url = this.getUrl;
                 this.$.ajax.body = null;
                 this.$.ajax.generateRequest();
             },
+            /*Sets the item property to the e.detail of the response.*/
             _onResponse: function (e) {
                 this.set("items", e.detail.response)
                 this.fire("krypton-list", this.items);

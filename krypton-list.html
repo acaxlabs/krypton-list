@@ -26,7 +26,7 @@
             properties: {
                 /* Output property, the list of entitys from your c# */
                 items: { type: Array, notify: true },
-                /* Define your url with this attribute. Otherwise it defaults to url in the current brower with /api */
+                /* Base part of the url. Usually set on window context. */
                 baseUrl: { type: String },
                 /* Url path appended to the baseUrl */
                 path: { type: String, observer: "_pathChange" }

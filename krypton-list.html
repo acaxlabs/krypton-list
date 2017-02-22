@@ -42,8 +42,8 @@
             },
             // call this to force a fetch of items
             generateRequest: function() {
-                this.$.ajax.url = this.baseUrl + this.path;
-                console.log(this.$.ajax.url);
+                var base = (this.baseUrl == undefined) ? "" : this.baseUrl;
+                this.$.ajax.url = base + this.path;
                 this.$.ajax.generateRequest();
             },
             // check to make sure all bindings in the path are resolved, then generateRequest

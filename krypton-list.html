@@ -66,8 +66,38 @@
             },
             _onPageInfoPageChanged: function (page) {
                 if (page == this.currentPage) return;
-                var segments = this.path.split("/");
-                var path = segments[0].concat("/", segments[1].split("?")[0], "?page=" + page + "&total=" + this.pageInfo.total);
+                //this.set("currentPage", page);
+                //this.set("pageInfo.page", page);
+                var segments = this.path.split("?");
+                var pathname = segments[0];
+                var query = segments[1];
+                if (query === undefined) {
+                    query = "page=" + page.toString().concat("&total=", this.pageInfo.total, "&pageSize=", this.pageInfo.pageSize);
+                }
+                else if (!query.includes("page") && !query.includes("total")) {
+                    var pageinfoQuery = "page=" + page.toString().concat("&total=", this.pageInfo.total, "&pageSize=", this.pageInfo.pageSize);
+                    query = query.concat("&", pageinfoQuery);
+                }
+                else {
+                    var items = query.split('&');
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].includes("pageSize")) {
+                            items[i] = "pageSize=" + this.pageInfo.pageSize;
+                            continue;
+                        }
+                        if (items[i].includes("page")) {
+                            items[i] = "page=" + page;
+                            continue;
+                        }
+                        
+                        if (items[i].includes("total")) {
+                            items[i] = "total=" + this.pageInfo.total;
+                            continue;
+                        }
+                    }
+                    var query = items.join("&");
+                }
+                var path = pathname.concat("?", query);// segments[0].concat("/", segments[1].split("?")[0], "?page=" + this.pageInfo.page + "&total=" + this.pageInfo.total);
                 this.set("path", path);
             },
             __resolvePageInfoHeaders: function (request) {
@@ -79,7 +109,6 @@
                 || kryptonTotal === undefined || kryptonTotal == null
                 || kryptonPageSize === undefined || kryptonPageSize == null) return;
                 this.set("currentPage", Number(kryptonPage));
-
                 this.set("pageInfo", { page: Number(kryptonPage), total: Number(kryptonTotal), pageSize: Number(kryptonPageSize) });
 
             }

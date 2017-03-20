@@ -34,11 +34,16 @@
                 loading: { type: Boolean, notify: true, value: false },
                 /* paging info for items*/
                 pageInfo: { type: Object, notify: true },
-                currentPage: { type: Number, value: 1 }
-
+                /* current page for items*/
+                currentPage: { type: Number, value: 1 },
+                /* sort property for items*/
+                sort: { type: Object, notify: true, observer: "_onSortChanged" },
+                /* filter info for items*/
+                filterInfo: { type: Object, notify: true },
             },
             observers: [
-                "_onPageInfoPageChanged(pageInfo.page)"
+                "_onPageInfoPageChanged(pageInfo.page)",
+                "_onFilterInfoChanged(filterInfo.*)"
             ],
             ready: function () {
                 // if baseUrl is available on the window context, grab it
@@ -64,53 +69,35 @@
                 this.set("items", response);
                 this.fire("krypton-list", this.items);
             },
-            _onPageInfoPageChanged: function (page) {
-                if (page == this.currentPage) return;
-                //this.set("currentPage", page);
-                //this.set("pageInfo.page", page);
-                var segments = this.path.split("?");
-                var pathname = segments[0];
-                var query = segments[1];
-                if (query === undefined) {
-                    query = "page=" + page.toString().concat("&total=", this.pageInfo.total, "&pageSize=", this.pageInfo.pageSize);
-                }
-                else if (!query.includes("page") && !query.includes("total")) {
-                    var pageinfoQuery = "page=" + page.toString().concat("&total=", this.pageInfo.total, "&pageSize=", this.pageInfo.pageSize);
-                    query = query.concat("&", pageinfoQuery);
-                }
-                else {
-                    var items = query.split('&');
-                    for (var i = 0; i < items.length; i++) {
-                        if (items[i].includes("pageSize")) {
-                            items[i] = "pageSize=" + this.pageInfo.pageSize;
-                            continue;
-                        }
-                        if (items[i].includes("page")) {
-                            items[i] = "page=" + page;
-                            continue;
-                        }
-                        
-                        if (items[i].includes("total")) {
-                            items[i] = "total=" + this.pageInfo.total;
-                            continue;
-                        }
-                    }
-                    var query = items.join("&");
-                }
-                var path = pathname.concat("?", query);// segments[0].concat("/", segments[1].split("?")[0], "?page=" + this.pageInfo.page + "&total=" + this.pageInfo.total);
-                this.set("path", path);
-            },
             __resolvePageInfoHeaders: function (request) {
                 var kryptonPage = request.xhr.getResponseHeader("krypton-page");
                 var kryptonTotal = request.xhr.getResponseHeader("krypton-total");
-                var kryptonPageSize = request.xhr.getResponseHeader("krypton-pageSize");
+                var kryptonPageSize = request.xhr.getResponseHeader("krypton-page-size");
 
                 if (kryptonPage === undefined || kryptonPage == null
                 || kryptonTotal === undefined || kryptonTotal == null
                 || kryptonPageSize === undefined || kryptonPageSize == null) return;
                 this.set("currentPage", Number(kryptonPage));
                 this.set("pageInfo", { page: Number(kryptonPage), total: Number(kryptonTotal), pageSize: Number(kryptonPageSize) });
-
+            },
+            _onPageInfoPageChanged: function (page) {
+                if (page == this.currentPage) return;
+                this.$.ajax.headers["krypton-page"] = page;
+                this.$.ajax.headers["krypton-total"] = this.pageInfo.total;
+                this.$.ajax.headers["krypton-page-size"] = this.pageInfo.pageSize;
+                this.generateRequest();
+            },
+            _onSortChanged: function (newSort, oldSort) {
+                if (newSort === undefined || newSort == "" || newSort == null) return;
+                this.$.ajax.headers["krypton-sort"] = newSort;
+                this.generateRequest();
+            },
+            _onFilterInfoChanged: function (filtersRecord) {
+                var filters = filtersRecord.base;
+                if (filters === undefined || !filters) return;
+                this.$.ajax.headers["krypton-filter-info"] = JSON.stringify(filters);
+                console.log("filterInfo", filters);
+                this.generateRequest();
             }
         });
     </script>

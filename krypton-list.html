@@ -16,8 +16,10 @@
         <iron-ajax id="ajax"
                    handle-as="json"
                    on-response="_onResponse"
+                   last-error="{{error}}"
                    content-type="application/json"
-                   loading="{{loading}}">
+                   loading="{{loading}}"
+                   debounce-duration="1500">
         </iron-ajax>
     </template>
     <script>
@@ -43,7 +45,8 @@
             },
             observers: [
                 "_onPageInfoPageChanged(pageInfo.page)",
-                "_onFilterInfoChanged(filterInfo.*)"
+                "_onFilterInfoChanged(filterInfo.*)",
+                "_onError(error)",
             ],
             ready: function () {
                 // if baseUrl is available on the window context, grab it
@@ -54,13 +57,18 @@
             // call this to force a fetch of items
             generateRequest: function() {
                 var base = (this.baseUrl == undefined) ? "" : this.baseUrl;
+                if (!this._validPath(this.path)) return;
                 this.$.ajax.url = base + this.path;
                 this.$.ajax.generateRequest();
             },
             // check to make sure all bindings in the path are resolved, then generateRequest
             _pathChange: function (path) {
-                if (path == undefined || path.indexOf("=&") != -1 || path.charAt(path.length - 1) == "=") return;
+                if (!this._validPath(path)) return;
                 this.generateRequest();
+            },
+            _validPath: function (path) {
+                if (path == undefined || path.indexOf("=&") != -1 || path.charAt(path.length - 1) == "=") return false;
+                return true;
             },
             // Sets the items property to the e.detail of the response.
             _onResponse: function (e, request) {
@@ -98,6 +106,10 @@
                 this.$.ajax.headers["krypton-filter-info"] = JSON.stringify(filters);
                 console.log("filterInfo", filters);
                 this.generateRequest();
+            },
+            _onError: function (error) {
+                console.log(error);
+                this.fire("krypton-list-error", error);
             }
         });
     </script>
